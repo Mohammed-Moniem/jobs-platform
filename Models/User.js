@@ -31,8 +31,8 @@ const UserSchema = new Schema({
   photo: String,
   role: {
     type: String,
-    enum: ["admin", "seeker", "company"],
-    default: "seeker",
+    enum: ["Admin", "Seeker", "Company"],
+    default: "Seeker",
     required: [true, usersMessages.roleNotFoundEn],
   },
   resetPasswordToken: String,
