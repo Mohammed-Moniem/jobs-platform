@@ -139,6 +139,16 @@ const JobSchema = new Schema({
       value: String,
     },
   ],
+  customQuestions: [
+    {
+      key: String,
+      value: String,
+      answerType: {
+        type: String,
+        enum: ["Multiple Choice", "Select", "Text"],
+      },
+    },
+  ],
 });
 
 module.exports = Job = mongoose.model("jobs", JobSchema);
