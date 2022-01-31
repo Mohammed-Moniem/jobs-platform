@@ -4,7 +4,10 @@ const asyncHandler = require("../middleware/async");
 const sendEmail = require("../utils/sendEmail");
 const crypto = require("crypto");
 const { createOTP } = require("../utils/otp");
-const { otpTemplate } = require("../views/emailTemplates");
+const {
+  otpTemplate,
+  resetPasswordTemplate,
+} = require("../views/emailTemplates");
 const { authMessages } = require("../Helpers/messages");
 const { validateRegister, validateLogin } = require("../validation/auth");
 const { is } = require("express/lib/request");
@@ -60,9 +63,9 @@ exports.register = asyncHandler(async (req, res, next) => {
 });
 
 //@Desc   Verify user account
-//@route  GET /api/v1/auth/verify
+//@route  GET /api/v1/auth/verify-my-account
 //@access Private
-exports.verify = asyncHandler(async (req, res, next) => {
+exports.verifyAccount = asyncHandler(async (req, res, next) => {
   if (!req.body.otp) {
     return next(new ErrorResponse(otpNotFoundEn, 400));
   }
@@ -223,12 +226,12 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
   const resetUrl = `${req.protocol}://${req.get(
     "host"
   )}/api/v1/auth/resetpassword/${resetToken}`;
-  const message = `You are receiving this email because you (or someone else) has requested the reset of a password. Please click on the link to rest it: \n\n ${resetUrl}`;
+  const html = resetPasswordTemplate(resetUrl);
   try {
     await sendEmail({
       email: user.email,
       subject: "Password reset token",
-      message,
+      html,
     });
     res.status(200).json({ success: true, data: "Email sent" });
   } catch (err) {

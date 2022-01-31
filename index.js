@@ -12,9 +12,11 @@ const helmet = require("helmet");
 const xss = require("xss-clean");
 const hpp = require("hpp");
 const rateLimit = require("express-rate-limit");
-//Cors
+
 const cors = require("cors");
 const { audit } = require("./middleware/interceptors");
+//Import routes
+const auth = require("./routes/auth");
 
 const app = express();
 
@@ -42,7 +44,8 @@ app.use((req, res, next) => {
   });
   next();
 });
-
+//Use routes
+app.use("/api/v1/auth", auth);
 app.use(errorHandler);
 
 if (process.env.NODE_ENV === "development") {

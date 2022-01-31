@@ -31,7 +31,7 @@ const UserSchema = new Schema({
   photo: String,
   otp: {
     code: String,
-    date: Date.now,
+    date: { type: Date, default: Date.now },
   },
   isVerified: {
     type: Boolean,

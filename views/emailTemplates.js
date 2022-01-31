@@ -18,7 +18,7 @@ module.exports.otpTemplate = (code) => {
 </div>`;
 };
 
-module.exports.resetPasswordTemplate = (token) => {
+module.exports.resetPasswordTemplate = (resetLink) => {
   return `<!DOCTYPE html>
 <html>
 
@@ -222,9 +222,8 @@ module.exports.resetPasswordTemplate = (token) => {
                                         <table border="0" cellpadding="0" cellspacing="0">
                                             <tr>
                                                 <td align="center" bgcolor="#1a82e2" style="border-radius: 6px;">
-                                                    <a href="https://sendgrid.com" target="_blank"
-                                                        style="display: inline-block; padding: 16px 36px; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; color: #ffffff; text-decoration: none; border-radius: 6px;">Do
-                                                        Something Sweet</a>
+                                                    <a href=${resetLink} target="_blank"
+                                                        style="display: inline-block; padding: 16px 36px; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; color: #ffffff; text-decoration: none; border-radius: 6px;">Reset Password</a>
                                                 </td>
                                             </tr>
                                         </table>

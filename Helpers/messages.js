@@ -44,4 +44,6 @@ module.exports.authMessages = {
   invalidToken: "Invalid token",
   otpCreationProblemEn:
     "There was a problem creating your verification code, please contact our support team",
+  loginEn: "Please login first",
+  notAuthorizedEn: "You are not authorized to access",
 };

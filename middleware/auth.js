@@ -2,7 +2,9 @@ const jwt = require("jsonwebtoken");
 const asyncHandler = require("./async");
 const ErrorResponse = require("../utils/errorResponse");
 const User = require("../models/User");
-const { commonMessages } = require("../helpers/messages/common");
+const { authMessages } = require("../helpers/messages");
+
+const { loginEn, notAuthorizedEn } = authMessages;
 
 // Protect routes
 exports.protect = asyncHandler(async (req, res, next) => {
@@ -17,19 +19,19 @@ exports.protect = asyncHandler(async (req, res, next) => {
     token = req.cookies.token;
   }
   if (!token) {
-    return next(new ErrorResponse(commonMessages.loginAr, 401));
+    return next(new ErrorResponse(loginEn, 401));
   }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.id).lean();
     if (!user) {
-      return next(new ErrorResponse(commonMessages.loginAr, 401));
+      return next(new ErrorResponse(loginEn, 401));
     }
     req.user = user;
     next();
   } catch (err) {
-    return next(new ErrorResponse(commonMessages.loginAr, 401));
+    return next(new ErrorResponse(loginEn, 401));
   }
 });
 
@@ -37,7 +39,7 @@ exports.protect = asyncHandler(async (req, res, next) => {
 exports.authorize = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
-      return next(new ErrorResponse(commonMessages.notAuthorizedAr, 403));
+      return next(new ErrorResponse(notAuthorizedEn, 403));
     }
     next();
   };
