@@ -41,6 +41,7 @@ module.exports.authMessages = {
   otpNotFoundEn: "Otp was not found",
   wrongPasswordEn: "Wrong password",
   emailCouldNotBeSent: "Email could not be sent",
+  invalidToken: "Invalid token",
   otpCreationProblemEn:
     "There was a problem creating your verification code, please contact our support team",
 };
