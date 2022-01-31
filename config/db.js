@@ -10,5 +10,4 @@ const connectDB = async () => {
       .cyan.underline.bold
   );
 };
-
 module.exports = connectDB;

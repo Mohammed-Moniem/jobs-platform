@@ -29,11 +29,30 @@ const UserSchema = new Schema({
     match: [/^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$/],
   },
   photo: String,
+  otp: {
+    code: String,
+    date: Date.now,
+  },
+  isVerified: {
+    type: Boolean,
+    default: false,
+  },
   role: {
     type: String,
     enum: ["Admin", "Seeker", "Company"],
     default: "Seeker",
     required: [true, usersMessages.roleNotFoundEn],
+  },
+  perviousPasswords: {
+    passwords: [
+      {
+        password: String,
+        firstSet: Date,
+        changeDate: Date,
+        resetDate: Date,
+      },
+    ],
+    select: false,
   },
   resetPasswordToken: String,
   resetPasswordExpire: Date,

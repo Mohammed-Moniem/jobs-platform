@@ -1,10 +1,49 @@
+//Essential
 const express = require("express");
 const dotenv = require("dotenv");
 const morgan = require("morgan");
 const colors = require("colors");
 const connectDB = require("./config/db");
+const errorHandler = require("./middleware/error");
+//More Security
+const trimReqBody = require("trim-request-body");
+const mongoSanitize = require("express-mongo-sanitize");
+const helmet = require("helmet");
+const xss = require("xss-clean");
+const hpp = require("hpp");
+const rateLimit = require("express-rate-limit");
+//Cors
+const cors = require("cors");
+const { audit } = require("./middleware/interceptors");
 
 const app = express();
+
+app.use(express.json({ limit: "50mb" }));
+app.use(express.text({ limit: "50mb" }));
+
+app.use(trimReqBody);
+app.use(mongoSanitize());
+app.use(helmet());
+app.use(xss());
+app.use(hpp());
+app.use(cors());
+
+const limiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10mins
+  max: 10000,
+});
+
+app.use(limiter);
+
+//interceptors
+app.use((req, res, next) => {
+  res.on("finish", async () => {
+    await audit(req, res);
+  });
+  next();
+});
+
+app.use(errorHandler);
 
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
