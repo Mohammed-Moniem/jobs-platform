@@ -44,6 +44,7 @@ app.use((req, res, next) => {
   });
   next();
 });
+
 //Use routes
 app.use("/api/v1/auth", auth);
 app.use(errorHandler);

@@ -1,4 +1,5 @@
 const nodemailer = require("nodemailer");
+const { authMessages } = require("../Helpers/messages");
 const asyncHandler = require("../middleware/async");
 const ErrorResponse = require("../utils/errorResponse");
 
@@ -13,18 +14,19 @@ const sendEmail = asyncHandler(async (options, next) => {
     tls: {
       rejectUnauthorized: false,
     },
+    debug: true,
+    logger: true,
   });
-  const message = {
-    from: `${process.env.FROM_NAME} <${process.env.FROM_EMAIL}>`,
-    to: options.email,
-    subject: options.subject,
-    text: options.message ? options.message : undefined,
-    html: options.html ? options.html : undefined,
-  };
   try {
+    const message = {
+      from: `${process.env.FROM_NAME} <${process.env.FROM_EMAIL}>`,
+      to: options.email,
+      subject: options.subject,
+      text: options.message ? options.message : undefined,
+      html: options.html ? options.html : undefined,
+    };
     const info = await transporter.sendMail(message);
     console.log("Message sent: %s", info.messageId);
-    next();
   } catch (error) {
     console.log(error);
     return next(new ErrorResponse(authMessages.otpCreationProblemEn, 400));

@@ -3,7 +3,6 @@ const { authMessages } = require("../Helpers/messages");
 const isEmpty = require("./is-empty");
 
 module.exports.validateRegister = (data) => {
-  const { email, password, password2, phoneNumber, role } = data;
   const {
     emailNotValidEn,
     passwordNotValidEn,
@@ -14,55 +13,57 @@ module.exports.validateRegister = (data) => {
   } = authMessages;
   let errors = {};
 
-  email = !isEmpty(email) ? email : "";
-  if (Validator.isEmpty(email)) {
+  data.email = !isEmpty(data.email) ? data.email : "";
+  if (Validator.isEmpty(data.email)) {
     errors.email = `${emailNotValidEn}`;
   }
-  if (!Validator.whitelist(email, /^[\w\d-.]+@[a-zA-Z]+?\.[a-zA-Z]{2,3}$/)) {
+  if (
+    !Validator.whitelist(data.email, /^[\w\d-.]+@[a-zA-Z]+?\.[a-zA-Z]{2,3}$/)
+  ) {
     errors.email = `${emailNotValidEn}`;
   }
 
-  if (!Validator.isLength(email, { min: 8, max: 50 })) {
+  if (!Validator.isLength(data.email, { min: 8, max: 50 })) {
     errors.email = `${emailNotValidEn}`;
   }
 
-  password = !isEmpty(password) ? password : "";
+  data.password = !isEmpty(data.password) ? data.password : "";
 
-  if (Validator.isEmpty(password)) {
+  if (Validator.isEmpty(data.password)) {
     errors.password = `${passwordNotValidEn}`;
   }
 
-  if (!Validator.isLength(password, { min: 8, max: 50 })) {
+  if (!Validator.isLength(data.password, { min: 8, max: 50 })) {
     errors.password = `${passwordLengthEn}`;
   }
 
-  password2 = !isEmpty(password2) ? password2 : "";
+  data.password2 = !isEmpty(data.password2) ? data.password2 : "";
 
-  if (Validator.isEmpty(password2)) {
+  if (Validator.isEmpty(data.password2)) {
     errors.password2 = `${confirmPasswordEn}`;
   }
 
-  if (!Validator.equals(password, password2)) {
+  if (!Validator.equals(data.password, data.password2)) {
     errors.password = `${confirmPasswordEn}`;
   }
 
-  phoneNumber = !isEmpty(phoneNumber) ? phoneNumber : "";
+  data.phoneNumber = !isEmpty(data.phoneNumber) ? data.phoneNumber : "";
 
-  if (Validator.isEmpty(phoneNumber)) {
+  if (Validator.isEmpty(data.phoneNumber)) {
     errors.phoneNumber = `${phoneNumberNotValidEn}`;
   }
 
-  if (!Validator.isLength(phoneNumber, { min: 9, max: 14 })) {
+  if (!Validator.isLength(data.phoneNumber, { min: 9, max: 14 })) {
     errors.phoneNumber = `${phoneNumberNotValidEn}`;
   }
 
-  role = !isEmpty(role) ? role : "";
+  data.role = !isEmpty(data.role) ? data.role : "";
 
-  if (Validator.isEmpty(role)) {
+  if (Validator.isEmpty(data.role)) {
     errors.role = `${roleNotValidEn}`;
   }
 
-  if (!Validator.isIn(role, ["Admin", "Seeker", "Company"])) {
+  if (!Validator.isIn(data.role, ["Admin", "Seeker", "Company"])) {
     errors.role = `${roleNotValidEn}`;
   }
 
@@ -73,20 +74,21 @@ module.exports.validateRegister = (data) => {
 };
 
 module.exports.validateLogin = (data) => {
-  const { email, password } = data;
   const { credentialProblemEn } = authMessages;
   let errors = {};
 
-  email = !isEmpty(email) ? email : "";
-  if (Validator.isEmpty(email)) {
+  data.email = !isEmpty(data.email) ? data.email : "";
+  if (Validator.isEmpty(data.email)) {
     errors.email = `${credentialProblemEn}`;
   }
-  if (!Validator.whitelist(email, /^[\w\d-.]+@[a-zA-Z]+?\.[a-zA-Z]{2,3}$/)) {
+  if (
+    !Validator.whitelist(data.email, /^[\w\d-.]+@[a-zA-Z]+?\.[a-zA-Z]{2,3}$/)
+  ) {
     errors.email = `${credentialProblemEn}`;
   }
-  password = !isEmpty(password) ? password : "";
+  data.password = !isEmpty(data.password) ? data.password : "";
 
-  if (Validator.isEmpty(password)) {
+  if (Validator.isEmpty(data.password)) {
     errors.password = `${credentialProblemEn}`;
   }
 

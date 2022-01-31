@@ -23,6 +23,7 @@ const {
   wrongPasswordEn,
   emailCouldNotBeSent,
   invalidToken,
+  otpCreationProblemEn,
 } = authMessages;
 // GET GET GET GET GET GET GET GET GET GET GET GET GET GET
 
@@ -53,12 +54,23 @@ exports.register = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse(userFoundEn, 400));
   }
   const code = createOTP();
-  await sendOTP(email.trim().toLowerCase().replace(/\s/g, ""), code, next);
   const user = await User.create({
     ...req.body,
     email: req.body.email.trim().toLowerCase().replace(/\s/g, ""),
     otp: { code },
   });
+
+  try {
+    await sendOTP(
+      req.body.email.trim().toLowerCase().replace(/\s/g, ""),
+      code,
+      next
+    );
+  } catch (error) {
+    console.log(error);
+    return next(new ErrorResponse(otpCreationProblemEn, 400));
+  }
+
   sendTokenResponse(user, 200, res);
 });
 
@@ -122,7 +134,7 @@ exports.login = asyncHandler(async (req, res, next) => {
   }
   if (!user.isVerified) {
     const otpExpiry = compareOTP(user.otp.date);
-    if (process.env.OTP_EXPIRY < otpExpiry) {
+    if (process.env.OTP_EXPIRY <= otpExpiry) {
       return next(new ErrorResponse(otpExpiryEn, 401));
     }
   }
@@ -281,10 +293,11 @@ const sendTokenResponse = (user, statusCode, res) => {
   if (process.env.NODE_ENV === "production") {
     options.secure = true;
   }
+  user.password = undefined;
   res
     .status(statusCode)
     .cookie("token", token, options)
-    .json({ success: true, token });
+    .json({ success: true, token, user });
 };
 
 const sendOTP = async (email, code, next) => {
