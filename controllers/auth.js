@@ -12,6 +12,7 @@ const { authMessages } = require("../Helpers/messages");
 const { validateRegister, validateLogin } = require("../validation/auth");
 const { is } = require("express/lib/request");
 const { compareOTP } = require("../utils/dates");
+const { geoDistanceCase } = require("../middleware/geo");
 
 const {
   userFoundEn,
@@ -24,6 +25,8 @@ const {
   emailCouldNotBeSent,
   invalidToken,
   otpCreationProblemEn,
+  otpNotFoundEn,
+  otpVerificationEn,
 } = authMessages;
 // GET GET GET GET GET GET GET GET GET GET GET GET GET GET
 
@@ -31,8 +34,7 @@ const {
 //@route  POST /api/v1/auth/my-account
 //@access Public
 exports.getMyAccount = asyncHandler(async (req, res, next) => {
-  const user = await User.findById(req.user.id).lean();
-  res.status(200).json({ success: true, data: user });
+  res.status(200).json({ success: true, data: req.user });
 });
 
 // POST POST POST POST POST POST POST POST POST POST POST POST POST POST
@@ -54,6 +56,7 @@ exports.register = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse(userFoundEn, 400));
   }
   const code = createOTP();
+  //Request body must include geolocation
   const user = await User.create({
     ...req.body,
     email: req.body.email.trim().toLowerCase().replace(/\s/g, ""),
@@ -98,16 +101,28 @@ exports.verifyAccount = asyncHandler(async (req, res, next) => {
 //@access Private
 exports.resendOTPCode = asyncHandler(async (req, res, next) => {
   const user = await User.findOne({
-    email: req.user.email.trim().toLowerCase().replace(/\s/g, ""),
+    email: req.body.email.trim().toLowerCase().replace(/\s/g, ""),
   });
-  if (!user) {
-    return next(new ErrorResponse(userNotFoundEn, 401));
+  if (!user || user.isVerified) {
+    return next(new ErrorResponse(otpVerificationEn, 401));
   }
   const code = createOTP();
-  await sendOTP(email.trim().toLowerCase().replace(/\s/g, ""), code, next);
+  user.otp.code = code;
+  user.otp.date = new Date();
+  await user.save();
+  try {
+    await sendOTP(
+      req.body.email.trim().toLowerCase().replace(/\s/g, ""),
+      code,
+      next
+    );
+  } catch (error) {
+    console.log(error);
+    return next(new ErrorResponse(otpCreationProblemEn, 400));
+  }
   res.status(200).json({
     success: true,
-    data: {},
+    data: user,
   });
 });
 
@@ -121,17 +136,27 @@ exports.login = asyncHandler(async (req, res, next) => {
       if (errors[key]) return next(new ErrorResponse(errors[key], 400));
     }
   }
-  const { email, password } = req.body;
+
+  const { email, password, geoLocation } = req.body;
   const user = await User.findOne({
     email: email.trim().toLowerCase().replace(/\s/g, ""),
-  }).select("+password");
+  }).select({ password: 1, loginIPs: 1, email: 1, phoneNumber: 1 });
+
   if (!user) {
-    return next(new ErrorResponse(userNotFoundEn, 401));
+    return next(new ErrorResponse(userNotFoundEn, 404));
   }
+
   const isMatch = await user.matchPassword(password);
   if (!isMatch) {
     return next(new ErrorResponse(credentialProblemEn, 401));
   }
+  const ips = user.loginIPs.IPs.map((ip) => {
+    if (ip.isTrusted) return ip.IPv4;
+  });
+  console.log({ ips });
+  if (!ips.includes(geoLocation.IPv4))
+    await geoDistanceCase(geoLocation, user._id, next);
+
   if (!user.isVerified) {
     const otpExpiry = compareOTP(user.otp.date);
     if (process.env.OTP_EXPIRY <= otpExpiry) {
@@ -145,6 +170,20 @@ exports.login = asyncHandler(async (req, res, next) => {
 // @route     GET /api/v1/auth/logout
 // @access    Private
 exports.logout = asyncHandler(async (req, res, next) => {
+  res.cookie("token", "none", {
+    expires: new Date(Date.now() + 10 * 1000),
+    httpOnly: true,
+  });
+  res.status(200).json({
+    success: true,
+    data: {},
+  });
+});
+
+// @desc      Log user out / clear cookie
+// @route     GET /api/v1/auth/logout
+// @access    Private
+exports.logoutOfAllDevices = asyncHandler(async (req, res, next) => {
   res.cookie("token", "none", {
     expires: new Date(Date.now() + 10 * 1000),
     httpOnly: true,
@@ -237,13 +276,14 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
   await user.save({ validateBeforeSave: false });
   const resetUrl = `${req.protocol}://${req.get(
     "host"
-  )}/api/v1/auth/resetpassword/${resetToken}`;
+  )}/my-domain/reset-password/${resetToken}`;
   const html = resetPasswordTemplate(resetUrl);
   try {
     await sendEmail({
       email: user.email,
       subject: "Password reset token",
       html,
+      type: "RESET-PASSWORD",
     });
     res.status(200).json({ success: true, data: "Email sent" });
   } catch (err) {
@@ -265,15 +305,20 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
 exports.resetPassword = asyncHandler(async (req, res, next) => {
   const resetPasswordToken = crypto
     .createHash("sha256")
-    .update(req.params.resettoken)
+    .update(req.params.resetToken)
     .digest("hex");
   const user = await User.findOne({
     resetPasswordToken,
     resetPasswordExpire: { $gt: Date.now() },
-  });
+  }).select({ password: 1, perviousPasswords: 1 });
   if (!user) {
     return next(new ErrorResponse(invalidToken, 400));
   }
+  user.perviousPasswords.passwords.push({
+    password: user.password,
+    resetDate: new Date(),
+  });
+  //Check previous passwords
   user.password = req.body.password;
   user.resetPasswordToken = undefined;
   user.resetPasswordExpire = undefined;
@@ -294,6 +339,8 @@ const sendTokenResponse = (user, statusCode, res) => {
     options.secure = true;
   }
   user.password = undefined;
+  user.perviousPasswords = undefined;
+  user.loginIPs = undefined;
   res
     .status(statusCode)
     .cookie("token", token, options)
@@ -307,6 +354,7 @@ const sendOTP = async (email, code, next) => {
       email,
       subject: verificationEmailSubject,
       html,
+      type: "OTP",
     },
     next
   );

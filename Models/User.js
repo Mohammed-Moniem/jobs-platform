@@ -13,22 +13,22 @@ const UserSchema = new Schema({
       /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
       usersMessages.emailNotFoundEn,
     ],
-    required: [true],
+    // required: [true],
   },
   password: {
     type: String,
-    required: [true, usersMessages.passwordNotFoundEn],
+    // required: [true, usersMessages.passwordNotFoundEn],
     minlength: 6,
     maxlength: 255,
     select: false,
   },
+  //move to resume
   phoneNumber: {
     type: Number,
-    required: [true, usersMessages.phoneNumberNotFoundEn],
-    unique: [true],
+    // required: [true, usersMessages.phoneNumberNotFoundEn],
+    // unique: [true],
     match: [/^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$/],
   },
-  photo: String,
   otp: {
     code: String,
     date: { type: Date, default: Date.now },
@@ -37,19 +37,40 @@ const UserSchema = new Schema({
     type: Boolean,
     default: false,
   },
+  logoutOfAllDevices: {
+    type: Boolean,
+    default: false,
+  },
+  isActive: {
+    type: Boolean,
+    default: true,
+  },
   role: {
     type: String,
     enum: ["Admin", "Seeker", "Company"],
     default: "Seeker",
-    required: [true, usersMessages.roleNotFoundEn],
+    // required: [true, usersMessages.roleNotFoundEn],
   },
   perviousPasswords: {
     passwords: [
       {
         password: String,
-        firstSet: Date,
-        changeDate: Date,
         resetDate: Date,
+      },
+    ],
+    select: false,
+  },
+  loginIPs: {
+    IPs: [
+      {
+        IPv4: String,
+        loginDate: Date,
+        isTrusted: Boolean,
+        longitude: String,
+        latitude: String,
+        city: String,
+        countryName: String,
+        countryCode: String,
       },
     ],
     select: false,

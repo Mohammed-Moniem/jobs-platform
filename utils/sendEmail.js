@@ -1,6 +1,7 @@
 const nodemailer = require("nodemailer");
 const { authMessages } = require("../Helpers/messages");
 const asyncHandler = require("../middleware/async");
+const Email = require("../Models/Emails");
 const ErrorResponse = require("../utils/errorResponse");
 
 const sendEmail = asyncHandler(async (options, next) => {
@@ -18,13 +19,21 @@ const sendEmail = asyncHandler(async (options, next) => {
     logger: true,
   });
   try {
+    const { email, subject, type } = options;
     const message = {
       from: `${process.env.FROM_NAME} <${process.env.FROM_EMAIL}>`,
-      to: options.email,
-      subject: options.subject,
+      to: email,
+      subject: subject,
       text: options.message ? options.message : undefined,
       html: options.html ? options.html : undefined,
     };
+    await Email.create({
+      to: email,
+      from: `${process.env.FROM_NAME} <${process.env.FROM_EMAIL}>`,
+      subject: subject,
+      message: options.html ? options.html : options.message,
+      type,
+    });
     const info = await transporter.sendMail(message);
     console.log("Message sent: %s", info.messageId);
   } catch (error) {

@@ -20,6 +20,8 @@ const auth = require("./routes/auth");
 
 const app = express();
 
+app.set("trust proxy", true);
+
 app.use(express.json({ limit: "50mb" }));
 app.use(express.text({ limit: "50mb" }));
 

@@ -67,6 +67,58 @@ module.exports.validateRegister = (data) => {
     errors.role = `${roleNotValidEn}`;
   }
 
+  data.loginIPs.IPs[0].countryCode = !isEmpty(data.loginIPs.IPs[0].countryCode)
+    ? data.loginIPs.IPs[0].countryCode
+    : "";
+
+  if (Validator.isEmpty(data.loginIPs.IPs[0].countryCode)) {
+    errors.countryCode = `${countryCodeNotValidEn}`;
+  }
+
+  data.loginIPs.IPs[0].countryName = !isEmpty(data.loginIPs.IPs[0].countryName)
+    ? data.loginIPs.IPs[0].countryName
+    : "";
+
+  if (Validator.isEmpty(data.loginIPs.IPs[0].countryName)) {
+    errors.countryName = `${countryNameNotValidEn}`;
+  }
+
+  data.loginIPs.IPs[0].city = !isEmpty(data.loginIPs.IPs[0].city)
+    ? data.loginIPs.IPs[0].city
+    : "";
+
+  if (Validator.isEmpty(data.loginIPs.IPs[0].city)) {
+    errors.city = `${cityNotValidEn}`;
+  }
+
+  data.loginIPs.IPs[0].longitude = !isEmpty(
+    data.loginIPs.IPs[0].longitude.toString()
+  )
+    ? data.loginIPs.IPs[0].longitude.toString()
+    : "";
+
+  if (Validator.isEmpty(data.loginIPs.IPs[0].longitude.toString())) {
+    errors.longitude = `${longitudeNotValidEn}`;
+  }
+
+  data.loginIPs.IPs[0].latitude = !isEmpty(
+    data.loginIPs.IPs[0].latitude.toString()
+  )
+    ? data.loginIPs.IPs[0].latitude.toString()
+    : "";
+
+  if (Validator.isEmpty(data.loginIPs.IPs[0].latitude.toString())) {
+    errors.latitude = `${latitudeNotValidEn}`;
+  }
+
+  data.loginIPs.IPs[0].IPv4 = !isEmpty(data.loginIPs.IPs[0].IPv4)
+    ? data.loginIPs.IPs[0].IPv4
+    : "";
+
+  if (Validator.isEmpty(data.loginIPs.IPs[0].IPv4)) {
+    errors.IPv4 = `${IPv4NotValidEn}`;
+  }
+
   return {
     errors,
     isValid: isEmpty(errors),

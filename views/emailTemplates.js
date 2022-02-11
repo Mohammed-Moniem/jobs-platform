@@ -314,3 +314,31 @@ module.exports.resetPasswordTemplate = (resetLink) => {
 
 </html>`;
 };
+
+module.exports.securityIssueEmail = (
+  country,
+  deactivationPath,
+  verifyIPUrl
+) => {
+  return `<html>
+    <style>
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 800px;
+    height: 800px
+     a {
+            color: #1a82e2;
+        }
+    </style>
+  <body>
+  
+  <h1>Someone tried to access you account from ${country}</h1>
+  <img src="https://cdn.pixabay.com/photo/2016/03/31/15/15/revolving-light-1293105_960_720.png"/>
+  <a href=${deactivationPath} target="__blank"> 1- Deactivate your account and log out of all devices</a>
+  </br>
+  </br>
+  <a href=${verifyIPUrl} target="__blank">2- Verify that's you</a>
+  </body>
+    </html>`;
+};
